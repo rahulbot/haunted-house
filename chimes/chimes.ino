@@ -1,3 +1,4 @@
+#define MOVE_PIN 1
 #define GONG_1 8
 #define GONG_2 9
 #define GONG_3 10
@@ -18,19 +19,25 @@ void setup() {
   pinMode(GONG_3, OUTPUT);
   pinMode(GONG_4, OUTPUT);
   pinMode(GONG_5, OUTPUT);
+  pinMode(MOVE_PIN, INPUT);
+  //pinMode(MOVE_PIN, INPUT_PULLUP);
+  Serial.begin(9600);
 }
 
 void loop() {
-  hit_two(F1, D1);
-  delay(EIGHT_NOTE);
-  hit(F2);
-  hit(D2);
-  hit_two(F1, D1);
-  delay(EIGHT_NOTE);
-  hit(F2);
-  hit(D2);
-  delay(EIGHT_NOTE*8);
-  
+  int movement = digitalRead(MOVE_PIN);
+  Serial.println(movement);
+/*  if(movement) {
+    hit_two(F1, D1);
+    delay(EIGHT_NOTE);
+    hit(F2);
+    hit(D2);
+    hit_two(F1, D1);
+    delay(EIGHT_NOTE);
+    hit(F2);
+    hit(D2);
+    delay(EIGHT_NOTE*8);
+  } */
 }
 
 void hit_two(int pin1, int pin2) {
