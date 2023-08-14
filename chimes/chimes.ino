@@ -1,17 +1,19 @@
-#define MOVE_PIN 1
+#define MOVE_PIN 2
 #define GONG_1 8
 #define GONG_2 9
 #define GONG_3 10
 #define GONG_4 11
 #define GONG_5 12
 
-#define F1 GONG_1
-#define F2 GONG_4
-#define D1 GONG_2
-#define D2 GONG_3
+#define G1 GONG_1
+#define G2 GONG_2
+#define G3 GONG_3
+#define G4 GONG_4
 
 #define HIT_STROKE  80
 #define EIGHT_NOTE  300
+
+int lastTrigger = -60;
 
 void setup() {
   pinMode(GONG_1, OUTPUT);
@@ -25,19 +27,29 @@ void setup() {
 }
 
 void loop() {
+  int currentSecs = millis() / 1000;
   int movement = digitalRead(MOVE_PIN);
+  Serial.print(currentSecs);
+  Serial.print('\t');
+  Serial.print(lastTrigger);
+  Serial.print('\t');
   Serial.println(movement);
-/*  if(movement) {
-    hit_two(F1, D1);
-    delay(EIGHT_NOTE);
-    hit(F2);
-    hit(D2);
-    hit_two(F1, D1);
-    delay(EIGHT_NOTE);
-    hit(F2);
-    hit(D2);
-    delay(EIGHT_NOTE*8);
-  } */
+  if(movement && ((currentSecs - lastTrigger) > 15)) {
+    lastTrigger = currentSecs;
+    Serial.println("******************************************");
+    Serial.println("******************************************");
+    Serial.println("******************************************");
+    Serial.println("******************************************");
+    hit(G1);
+    delay(EIGHT_NOTE*2);
+    hit(G2);
+    delay(EIGHT_NOTE*2);
+    hit(G3);
+    delay(EIGHT_NOTE*2);
+    hit(G4);
+    delay(EIGHT_NOTE*2);
+  }
+  delay(100);
 }
 
 void hit_two(int pin1, int pin2) {
