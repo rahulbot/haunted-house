@@ -29,12 +29,17 @@ void setup() {
 void loop() {
   int currentSecs = millis() / 1000;
   int movement = digitalRead(MOVE_PIN);
+  movement += digitalRead(MOVE_PIN);
+  movement += digitalRead(MOVE_PIN);
+  movement += digitalRead(MOVE_PIN);
+  movement += digitalRead(MOVE_PIN);
+  movement = movement / 5;
   Serial.print(currentSecs);
   Serial.print('\t');
   Serial.print(lastTrigger);
   Serial.print('\t');
   Serial.println(movement);
-  if(movement && ((currentSecs - lastTrigger) > 15)) {
+  if(movement && ((currentSecs - lastTrigger) > 30)) {
     lastTrigger = currentSecs;
     Serial.println("******************************************");
     Serial.println("******************************************");
