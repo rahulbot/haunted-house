@@ -22,7 +22,7 @@ void setup() {
     Serial.println("Device not found. Check wiring.");
     while (1);
   }
-  
+  Serial.println("Starting ------------------------------------------------------------");
 }
 
 void loop() {
@@ -30,19 +30,22 @@ void loop() {
   NeoPixel.show();
   if (movementSensor.available())
   {
-    ir1 = movementSensor.getIR1();
-    ir2 = movementSensor.getIR2();
-    ir3 = movementSensor.getIR3();
-    ir4 = movementSensor.getIR4();
+    ir1 = movementSensor.getIR1() / 10;
+    ir2 = movementSensor.getIR2() / 10;
+    ir3 = movementSensor.getIR3() / 10;
+    ir4 = movementSensor.getIR4() / 10;
     avg = (ir1 + ir2 + ir3 + ir4) / 4;
     float tempF = movementSensor.getTemperatureF();
-    Serial.print("avg: ");
-    Serial.print(avg);
-    Serial.println();
-    if (avg > 3000) {
+    //Serial.print("1:");
+    //Serial.print(avg);
+    //Serial.println();
+    if (avg > 800) {
+      Serial.print("boo! ");
+      Serial.println(avg);
       for( int pixel=0; pixel < NUM_PIXELS; pixel++) {
         NeoPixel.setPixelColor(pixel, NeoPixel.Color(50, 0, 0));
         NeoPixel.show();
+        delay(100);
       }
     }
     movementSensor.refresh(); //Read dummy register after new data is read
