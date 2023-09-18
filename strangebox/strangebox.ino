@@ -55,6 +55,7 @@ int ir1, ir2, ir3, ir4, avg, temperature;
 int ir_threshold = 800; // above this number the machine will trigger
 
 void setup() {
+  randomSeed(analogRead(5));
   Serial.begin(9600);
   NeoPixel.begin();
   Wire.begin();
@@ -75,7 +76,8 @@ void setup() {
   // turn on MP3 Player
   mp3.begin(9600);
   delay(50);
-  sendCommand(CMD_QUERY_STATUS);
+  //sendShortCommand(CMD_QUERY_STATUS);
+  sendLongCommand(CMD_PLAY_W_INDEX, 0, 3);
   Serial.println("Loop ------------------------------------------------------------");
 }
 
@@ -112,7 +114,7 @@ void handle_trigger_event(){
     Serial.print("¡Trigger! ");
     Serial.println(avg);
     // start sound on MP3 player
-    sendCommand(CMD_PLAY_W_INDEX, 1, 0); // 2nd arg is track number
+    sendLongCommand(CMD_PLAY_W_INDEX, 0, 1); // 2nd arg is track number
     // play pattern on lights
     for( int pixel=0; pixel < NUM_PIXELS; pixel++) {
       NeoPixel.setPixelColor(pixel, NeoPixel.Color(50, 0, 0));
@@ -138,10 +140,10 @@ void loop() {
 }
 
 
-void sendCommand(byte command){
-  sendCommand(command, 0, 0);
+void sendShortCommand(byte command){
+  sendLongCommand(command, 0, 0);
 }
-void sendCommand(byte command, byte dat1, byte dat2){
+void sendLongCommand(byte command, byte dat1, byte dat2){
   delay(20);
   Send_buf[0] = 0x7E;    //
   Send_buf[1] = 0xFF;    //
