@@ -2,11 +2,15 @@
 #include <Wire.h>
 #include "SparkFun_AK975X_Arduino_Library.h"
 #include <SoftwareSerial.h>
+#include <Servo.h>
 
 #define PIN_NEO_PIXEL 8
 #define NUM_PIXELS    28
 
 #define DELAY_INTERVAL 100
+
+Servo theServo;
+#define PIN_SERVO 3
 
 #define ARDUINO_RX 10 // MP3 TX
 #define ARDUINO_TX 11 // MP3 RX
@@ -77,7 +81,10 @@ void setup() {
   mp3.begin(9600);
   delay(50);
   //sendShortCommand(CMD_QUERY_STATUS);
-  sendLongCommand(CMD_PLAY_W_INDEX, 0, 3);
+  //sendLongCommand(CMD_PLAY_W_INDEX, 0, 3);
+  // wire up servo
+  theServo.attach(3);
+  theServo.write(40);
   Serial.println("Loop ------------------------------------------------------------");
 }
 
