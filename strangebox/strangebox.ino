@@ -89,7 +89,7 @@ void setup() {
   Serial.println(ir_threshold);
   // turn on MP3 Player
   mp3.begin(9600);
-  delay(50);
+  delay(200);
   //sendShortCommand(CMD_QUERY_STATUS);
   //sendLongCommand(CMD_PLAY_W_INDEX, 0, 3);
   Serial.println("Loop ------------------------------------------------------------");
@@ -109,7 +109,7 @@ void loop() {
 }
 
 /***************************************************************
- * IR Sensor COMMANDS
+ * Behavior COMMANDS
  ***************************************************************/
 
 void handle_trigger_event(){
