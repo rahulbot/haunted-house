@@ -1,20 +1,23 @@
-#include <Adafruit_NeoPixel.h>
+#include <FastLED.h>
 #include <Wire.h>
 #include "SparkFun_AK975X_Arduino_Library.h"
 #include <SoftwareSerial.h>
 #include <Servo.h>
 
+// LED Strip variables
 #define PIN_NEO_PIXEL 8
 #define NUM_PIXELS    28
+void set_strip(byte red, byte green, byte blue);
+// my wiring diagram ref: https://docs.google.com/presentation/d/1n-prYIjxbP88oVD0NHh5rnjuX89-BTGiBmRFsXlhnIc/edit?pli=1#slide=id.g208fc40b77c_0_17
+CRGB leds[NUM_PIXELS];
 
-#define DELAY_INTERVAL 100
-
+// Servo variables
 Servo theServo;
 #define PIN_SERVO 3
 
+// MP3 Player variables
 #define ARDUINO_RX 10 // MP3 TX
 #define ARDUINO_TX 11 // MP3 RX
-SoftwareSerial mp3(ARDUINO_RX, ARDUINO_TX);
 #define CMD_NEXT_SONG     0X01  // Play next song.
 #define CMD_PREV_SONG     0X02  // Play previous song.
 #define CMD_PLAY_W_INDEX  0X03
@@ -43,6 +46,7 @@ SoftwareSerial mp3(ARDUINO_RX, ARDUINO_TX);
 #define CMD_QUERY_FLDR_TRACKS 0x4e
 #define CMD_QUERY_TOT_TRACKS  0x48
 #define CMD_QUERY_FLDR_COUNT  0x4f
+SoftwareSerial mp3(ARDUINO_RX, ARDUINO_TX);
 String sanswer(void);
 String sbyte2hex(uint8_t b);
 static int8_t Send_buf[8] = {0}; // Buffer for Send commands.  // BETTER LOCALLY
@@ -50,19 +54,30 @@ static uint8_t ansbuf[10] = {0}; // Buffer for the answers.    // BETTER LOCALLY
 String mp3Answer;           // Answer from the MP3.
 String decodeMP3Answer(void);
 
+// IR Sensor variables
 AK975X movementSensor;
-
-// my wiring diagram ref: https://docs.google.com/presentation/d/1n-prYIjxbP88oVD0NHh5rnjuX89-BTGiBmRFsXlhnIc/edit?pli=1#slide=id.g208fc40b77c_0_17
-Adafruit_NeoPixel NeoPixel(NUM_PIXELS, PIN_NEO_PIXEL, NEO_GRB + NEO_KHZ800);
+int get_avg_ir_reading();
+int get_background_ir_level(int num_readings);
 int ir1, ir2, ir3, ir4, avg, temperature;
+int ir_threshold = 800; // above this number the machine will trigger; later set dynamically
 
-int ir_threshold = 800; // above this number the machine will trigger
+// Behaviour methods
+int a_while_since_last_trigger();
+void handle_trigger_event();
+
+/***************************************************************
+ * Control Functions
+ ***************************************************************/
 
 void setup() {
   randomSeed(analogRead(5));
   Serial.begin(9600);
-  NeoPixel.begin();
   Wire.begin();
+  // setup LEDs
+  FastLED.addLeds<WS2812,PIN_NEO_PIXEL,GRB>(leds, NUM_PIXELS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(0);
+  set_strip(161, 52, 235);
+  FastLED.show();
   //Turn on sensor
   if (movementSensor.begin() == false) {
     Serial.println("Device not found. Check wiring.");
@@ -74,12 +89,12 @@ void setup() {
   int background = get_background_ir_level(5);
   Serial.print("\tIR background ");
   Serial.println(background);
-  ir_threshold = background + 100;
+  ir_threshold = background + 150;
   Serial.print("\tIR treshold ");
   Serial.println(ir_threshold);
   // turn on MP3 Player
   mp3.begin(9600);
-  delay(50);
+  delay(200);
   //sendShortCommand(CMD_QUERY_STATUS);
   //sendLongCommand(CMD_PLAY_W_INDEX, 0, 3);
   // wire up servo
@@ -87,6 +102,52 @@ void setup() {
   theServo.write(40);
   Serial.println("Loop ------------------------------------------------------------");
 }
+
+void loop() {
+  // check for MP3 board reply?
+  // Check for the answer.
+  if (mp3.available()) {
+    Serial.println(decodeMP3Answer());
+  }
+  // trigger event if above threshold
+  avg = get_avg_ir_reading();
+  if ((avg > ir_threshold) && (a_while_since_last_trigger())){
+    handle_trigger_event();
+  }
+}
+
+/***************************************************************
+ * Behavior COMMANDS
+ ***************************************************************/
+
+void handle_trigger_event(){
+  Serial.print("¡Trigger! ");
+  Serial.println(avg);
+  //start sound on MP3 player
+  sendLongCommand(CMD_PLAY_W_INDEX, 0, 1); // last arg is track number
+  for (int r=0; r<2; r++) {
+    for (int b=0; b<random(200, 255); b+=5) {
+      FastLED.setBrightness(b);
+      FastLED.show();
+      delay(random(15,30));
+    }
+    for (int b=random(200, 255); b>0; b-=5) {
+      FastLED.setBrightness(b);
+      FastLED.show();
+      delay(random(15,30));
+    }
+  }
+  FastLED.setBrightness(0);
+  FastLED.show();
+}
+
+int a_while_since_last_trigger(){
+  return 1; // TODO: keep track of time so it doesn't always trigger?
+}
+
+/***************************************************************
+ * IR Sensor COMMANDS
+ ***************************************************************/
 
 int get_background_ir_level(int num_readings) {
   int background_level = 0;
@@ -117,35 +178,22 @@ int get_avg_ir_reading() {
   return avg_reading;
 }
 
-void handle_trigger_event(){
-    Serial.print("¡Trigger! ");
-    Serial.println(avg);
-    // start sound on MP3 player
-    sendLongCommand(CMD_PLAY_W_INDEX, 0, 1); // 2nd arg is track number
-    // play pattern on lights
-    for( int pixel=0; pixel < NUM_PIXELS; pixel++) {
-      NeoPixel.setPixelColor(pixel, NeoPixel.Color(50, 0, 0));
-      NeoPixel.show();
-      delay(100);
-    }
-}
 
-void loop() {
-  // clear the display
-  NeoPixel.clear();
-  NeoPixel.show();
-  // check for MP3 board reply
-  // Check for the answer.
-  if (mp3.available()) {
-    Serial.println(decodeMP3Answer());
-  }
-  // trigger event if above threshold
-  avg = get_avg_ir_reading();
-  if (avg > ir_threshold) {
-    handle_trigger_event();
+/***************************************************************
+ * LED Strip COMMANDS
+ ***************************************************************/
+
+void set_strip(byte red, byte green, byte blue) {
+  for (int p; p < NUM_PIXELS; p++) {
+    leds[p].r = red;
+    leds[p].g = green;
+    leds[p].b = blue;
   }
 }
 
+/***************************************************************
+ * MP3 COMMANDS
+ ***************************************************************/
 
 void sendShortCommand(byte command){
   sendLongCommand(command, 0, 0);
@@ -167,8 +215,6 @@ void sendLongCommand(byte command, byte dat1, byte dat2){
   }
   Serial.println();
 }
-
-
 String decodeMP3Answer() {
   String decodedMP3Answer = "";
   decodedMP3Answer += sanswer();
