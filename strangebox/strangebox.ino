@@ -87,7 +87,7 @@ void setup() {
   Serial.println("Setup ------------------------------------------------------------");
   Serial.println("Init:");
   // TODO: grab a set of IR readings to set the average background level
-  int background = get_background_ir_level(5);
+  int background = max(0, get_background_ir_level(5));
   Serial.print("\tIR background ");
   Serial.println(background);
   ir_threshold = background + 150;
