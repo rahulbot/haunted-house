@@ -7,4 +7,6 @@ house doorbell system. The main components include:
 * [12V solenoids from Adafruit](https://www.adafruit.com/product/413)
 * TIP120 transistors
 
+## Circuit Diagram
+
 ![circuit diagram of chimes](chimes-circuit.png)
