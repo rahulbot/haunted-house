@@ -2,8 +2,6 @@
 #include <Wire.h>
 #include "SparkFun_AK975X_Arduino_Library.h"
 #include <SoftwareSerial.h>
-// @see https://learn.adafruit.com/neopixels-and-servos/the-ticoservo-library
-#include <Adafruit_TiCoServo.h>  // to solve interrupt conflict with NeoPixels
 
 // LED Strip variables
 #define PIN_NEO_PIXEL 8
@@ -12,9 +10,8 @@ void set_strip(byte red, byte green, byte blue);
 // my wiring diagram ref: https://docs.google.com/presentation/d/1n-prYIjxbP88oVD0NHh5rnjuX89-BTGiBmRFsXlhnIc/edit?pli=1#slide=id.g208fc40b77c_0_17
 CRGB leds[NUM_PIXELS];
 
-// Servo variables
-Adafruit_TiCoServo theServo;
-#define PIN_SERVO 9 // Uno ONLY! must be on pin 9 or 10 for TiCoServo to work
+// Solenoid variables
+#define PIN_SOLENOID   7
 
 // MP3 Player variables
 #define ARDUINO_RX 10 // MP3 TX
@@ -98,9 +95,8 @@ void setup() {
   delay(200);
   //sendShortCommand(CMD_QUERY_STATUS);
   //sendLongCommand(CMD_PLAY_W_INDEX, 0, 3);
-  // wire up servo
-  theServo.attach(PIN_SERVO);
-  theServo.write(70);
+  // wire up solenoid
+  pinMode(PIN_SOLENOID, OUTPUT);
   Serial.println("Loop ------------------------------------------------------------");
 }
 
@@ -127,21 +123,24 @@ void handle_trigger_event(){
   //start sound on MP3 player
   sendLongCommand(CMD_PLAY_W_INDEX, 0, 1); // last arg is track number
   for (int r=0; r<2; r++) {
-    theServo.write(120);
+    digitalWrite(PIN_SOLENOID, HIGH);
+    delay(100);
+    
+    digitalWrite(PIN_SOLENOID, LOW);
     for (int b=0; b<random(200, 255); b+=5) {
       FastLED.setBrightness(b);
       FastLED.show();
       delay(random(15,30));
     }
-    theServo.write(70);
+    //theServo.write(70);
     for (int b=random(200, 255); b>0; b-=5) {
       FastLED.setBrightness(b);
       FastLED.show();
       delay(random(15,30));
     }
-    theServo.write(130);
+    //theServo.write(130);
   }
-  theServo.write(70);
+  //theServo.write(70);
   FastLED.setBrightness(0);
   FastLED.show();
 }
