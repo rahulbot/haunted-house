@@ -7,6 +7,7 @@ house doorbell system. The main components include:
 * HC-SR501 passive IR motion sensor
 * [12V solenoids from Adafruit](https://www.adafruit.com/product/413)
 * TIP120 transistors
+* 12V, 800mA power adapter
 
 ## Circuit Diagram
 
